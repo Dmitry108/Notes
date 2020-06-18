@@ -5,10 +5,11 @@ import kotlinx.android.parcel.Parcelize
 import java.util.*
 
 @Parcelize
-data class Note (val id: String,
-                 val title: String, val text: String,
+data class Note (val id: String = "",
+                 val title: String = "",
+                 val text: String = "",
                  val color: NoteColor = NoteColor.WHITE,
-                 val lastDate: Date = Date()): Parcelable{
+                 val lastDate: Date = Date()) : Parcelable{
 
     override fun equals(other: Any?): Boolean = when {
         other === this -> true

@@ -1,22 +1,31 @@
 package ru.bdim.notes.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import ru.bdim.notes.model.NotesViewState
+import androidx.lifecycle.Observer
+import ru.bdim.notes.model.Note
+import ru.bdim.notes.model.NoteResult
+import ru.bdim.notes.model.NoteResult.Error
+import ru.bdim.notes.model.MainViewState
 import ru.bdim.notes.model.Repository
 
-class MainViewModel : ViewModel(){
-    private val notesViewStateLiveData : MutableLiveData<NotesViewState> = MutableLiveData()
+class MainViewModel : BaseViewModel<List<Note>?, MainViewState>() {
 
-    init {
-        Repository.getNotes().observeForever {
-            it?.let {
-                notesViewStateLiveData.value = notesViewStateLiveData.value?.copy(notes = it)
-                    ?: NotesViewState(it)
-            }
+    private val notesObserver = Observer<NoteResult> {
+        it ?: return@Observer
+        when(it) {
+            is NoteResult.Success<*> ->
+                viewStateLD.value = MainViewState(notes = it.data as? List<Note>)
+            is Error ->
+                viewStateLD.value = MainViewState(error = it.e)
         }
     }
+    private val repositoryNotes = Repository.getNotes()
 
-    fun viewState() : LiveData<NotesViewState> = notesViewStateLiveData
+    init {
+        viewStateLD.value = MainViewState()
+        repositoryNotes.observeForever(notesObserver)
+    }
+    override fun onCleared() {
+        repositoryNotes.removeObserver(notesObserver)
+        super.onCleared()
+    }
 }

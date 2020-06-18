@@ -6,21 +6,26 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.MenuItem
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.activity_note.*
 import ru.bdim.notes.R
 import ru.bdim.notes.model.Note
+import ru.bdim.notes.model.NoteViewState
 import ru.bdim.notes.model.takeColor
 import ru.bdim.notes.model.takeId
 import ru.bdim.notes.viewmodel.NoteViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-class NoteActivity : AppCompatActivity() {
-    lateinit var noteViewModel: NoteViewModel
+class NoteActivity : BaseActivity<Note?, NoteViewState>() {
+
+    override val viewModel: NoteViewModel by lazy {
+        ViewModelProviders.of(this).get(NoteViewModel::class.java)
+    }
+    override val layoutId: Int = R.layout.activity_note
     private var note: Note? = null
+
     private val textListener: TextWatcher = object : TextWatcher {
         override fun afterTextChanged(s: Editable?) {
             saveNote()
@@ -32,9 +37,9 @@ class NoteActivity : AppCompatActivity() {
     companion object {
         private const val NOTE = "note"
         private const val DATE_FORMAT = "dd.MM.yy hh:mm"
-        fun startActivity(context: Context, note: Note? = null) =
+        fun startActivity(context: Context, id: String? = null) =
             Intent(context, NoteActivity::class.java).run {
-                note?.let {
+                id?.let {
                     putExtra(NOTE, it)
                 }
                 context.startActivity(this)
@@ -43,28 +48,37 @@ class NoteActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_note)
+
         setSupportActionBar(tlb_note)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = note?.let {
-            SimpleDateFormat(DATE_FORMAT, Locale.getDefault()).format(it.lastDate)
-        } ?: getString(R.string.new_note)
 
-        noteViewModel = ViewModelProviders.of(this).get(NoteViewModel::class.java)
+        val noteId = intent.getStringExtra(NOTE)
+        noteId?.let {
+            viewModel.loadNote(it)
+        } ?: let {
+            supportActionBar?.title = getString(R.string.new_note)
+        }
         initView()
     }
 
-    fun initView() {
-        etx_note_title.removeTextChangedListener(textListener)
-        etx_note_body.addTextChangedListener(textListener)
+    override fun renderData(data: Note?) {
+        this.note = data
+        supportActionBar?.title = note?.let {
+            SimpleDateFormat(DATE_FORMAT, Locale.getDefault()).format(it.lastDate)
+        } ?: getString(R.string.new_note)
+        initView()
+    }
 
-        note = intent.getParcelableExtra(NOTE)
+    private fun initView() {
+        etx_note_title.removeTextChangedListener(textListener)
+        etx_note_body.removeTextChangedListener(textListener)
 
         note?.let {
             etx_note_title.setText(it.title)
             etx_note_body.setText(it.text)
             tlb_note.setBackgroundColor(
-                ContextCompat.getColor(applicationContext, takeColor(it.color)))
+                ContextCompat.getColor(applicationContext, takeColor(it.color))
+            )
         }
 
         etx_note_title.addTextChangedListener(textListener)
@@ -79,12 +93,12 @@ class NoteActivity : AppCompatActivity() {
             lastDate = Date()
         ) ?: Note(takeId(), etx_note_title.text.toString(), etx_note_body.text.toString())
         note?.let {
-            noteViewModel.saveNote(it)
+            viewModel.saveNote(it)
         }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
-        when (item.itemId){
+        when (item.itemId) {
             android.R.id.home -> {
                 onBackPressed()
                 true
