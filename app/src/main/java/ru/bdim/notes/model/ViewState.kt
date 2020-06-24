@@ -7,3 +7,6 @@ class MainViewState(notes: List<Note>? = null, error: Throwable? = null)
 
 class NoteViewState(note: Note? = null, error: Throwable? = null)
     : BaseViewState<Note?>(note, error)
+
+class SplashViewState(isAuth: Boolean? = null, error: Throwable? = null)
+    : BaseViewState<Boolean?>(isAuth, error)
