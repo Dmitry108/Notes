@@ -7,4 +7,6 @@
     <string name="sure">Are you sure?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="colors">Note\'s color</string>
+    <string name="delete">Delete</string>
 </resources>

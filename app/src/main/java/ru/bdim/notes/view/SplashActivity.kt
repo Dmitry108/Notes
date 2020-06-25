@@ -1,12 +1,11 @@
 package ru.bdim.notes.view
 
-import androidx.lifecycle.ViewModelProviders
 import ru.bdim.notes.model.SplashViewState
 import ru.bdim.notes.viewmodel.SplashViewModel
+import org.koin.android.viewmodel.ext.android.viewModel
 
 class SplashActivity : BaseActivity<Boolean?, SplashViewState>() {
-    override val viewModel: SplashViewModel by lazy {
-        ViewModelProviders.of(this).get(SplashViewModel::class.java) }
+    override val viewModel: SplashViewModel by viewModel()
     override val layoutId: Int? = null
 
     override fun onResume() {

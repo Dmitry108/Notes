@@ -10,7 +10,6 @@ import ru.bdim.notes.model.User
 import ru.bdim.notes.model.auth.AuthException
 
 class FirestoreProvider : DataProvider {
-
     companion object {
         private const val NOTES = "notes"
         private const val USERS = "users"
@@ -63,4 +62,14 @@ class FirestoreProvider : DataProvider {
                 User(it.displayName ?: "", it.email ?: "")
             }
         }
+    override fun deleteNote(noteId: String): LiveData<NoteResult> =
+        MutableLiveData<NoteResult>().apply {
+            userNotes.document(noteId).delete()
+                .addOnSuccessListener {
+                    value = NoteResult.Success(null)
+                }.addOnFailureListener {
+                    value = NoteResult.Error(it)
+                }
+        }
+
 }
