@@ -7,7 +7,7 @@ import ru.bdim.notes.model.NoteResult.Error
 import ru.bdim.notes.model.MainViewState
 import ru.bdim.notes.model.Repository
 
-class MainViewModel : BaseViewModel<List<Note>?, MainViewState>() {
+class MainViewModel(repository: Repository) : BaseViewModel<List<Note>?, MainViewState>() {
 
     private val notesObserver = Observer<NoteResult> {
         it ?: return@Observer
@@ -18,7 +18,7 @@ class MainViewModel : BaseViewModel<List<Note>?, MainViewState>() {
                 viewStateLD.value = MainViewState(error = it.e)
         }
     }
-    private val repositoryNotes = Repository.getNotes()
+    private val repositoryNotes = repository.getNotes()
 
     init {
         viewStateLD.value = MainViewState()
