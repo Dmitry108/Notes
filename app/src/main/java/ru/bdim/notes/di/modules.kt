@@ -1,5 +1,7 @@
 package ru.bdim.notes.di
 
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import org.koin.android.viewmodel.ext.koin.viewModel
 import org.koin.dsl.module.module
 import ru.bdim.notes.model.Repository
@@ -9,7 +11,8 @@ import ru.bdim.notes.viewmodel.NoteViewModel
 import ru.bdim.notes.viewmodel.SplashViewModel
 
 val appModule = module {
-    single { Repository(FirestoreProvider()) }
+    single { Repository(FirestoreProvider(
+        FirebaseAuth.getInstance(), FirebaseFirestore.getInstance()))}
 }
 val splashModule = module {
     viewModel { SplashViewModel(get()) }
