@@ -11,11 +11,11 @@ class MainViewModel(repository: Repository) : BaseViewModel<List<Note>?, MainVie
 
     private val notesObserver = Observer<NoteResult> {
         it ?: return@Observer
-        when(it) {
+        viewStateLD.value = when(it) {
             is NoteResult.Success<*> ->
-                viewStateLD.value = MainViewState(notes = it.data as? List<Note>)
+                MainViewState(notes = it.data as? List<Note>)
             is Error ->
-                viewStateLD.value = MainViewState(error = it.e)
+                MainViewState(error = it.e)
         }
     }
     private val repositoryNotes = repository.getNotes()

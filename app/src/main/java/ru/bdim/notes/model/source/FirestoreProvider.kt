@@ -9,52 +9,67 @@ import ru.bdim.notes.model.NoteResult
 import ru.bdim.notes.model.User
 import ru.bdim.notes.model.auth.AuthException
 
-class FirestoreProvider : DataProvider {
+class FirestoreProvider (val auth: FirebaseAuth, val store: FirebaseFirestore)
+    : DataProvider {
     companion object {
         private const val NOTES = "notes"
         private const val USERS = "users"
     }
     private val user
-        get() = FirebaseAuth.getInstance().currentUser
+        get() = auth.currentUser
     private val userNotes
         get() = user?.let {
-            FirebaseFirestore.getInstance().collection(USERS)
+            store.collection(USERS)
                 .document(it.uid).collection(NOTES)
         } ?: throw AuthException()
 
     override fun subscribeToNotes(): LiveData<NoteResult> =
         MutableLiveData<NoteResult>().apply {
-            userNotes.addSnapshotListener(EventListener<QuerySnapshot> { snapshot, e ->
-                value = e?.let {
-                    NoteResult.Error(e)
-                } ?: snapshot?.let {
-                    val notes = it.documents.map {
-                        it.toObject(Note::class.java)
+            try {
+                userNotes.addSnapshotListener(EventListener<QuerySnapshot> { snapshot, e ->
+                    value = e?.let {
+                        NoteResult.Error(e)
+                    } ?: snapshot?.let {
+                        val notes = it.documents.map {
+                            it.toObject(Note::class.java)
+                        }
+                        NoteResult.Success(notes)
                     }
-                    NoteResult.Success(notes)
-                }
-            })
+                })
+            } catch (e: Throwable){
+                value = NoteResult.Error(e)
+            }
         }
+
     override fun getNote(id: String): LiveData<NoteResult> =
         MutableLiveData<NoteResult>().apply {
-            userNotes.document(id).get()
-                .addOnSuccessListener {
-                    value = NoteResult.Success(it.toObject(Note::class.java))
-                }
-                .addOnFailureListener {
-                    value = NoteResult.Error(it)
-                }
+            try {
+                userNotes.document(id).get()
+                    .addOnSuccessListener {
+                        value = NoteResult.Success(it.toObject(Note::class.java))
+                    }
+                    .addOnFailureListener {
+                        value = NoteResult.Error(it)
+                    }
+            } catch (e: Throwable){
+                value = NoteResult.Error(e)
+            }
         }
     override fun setNote(note: Note): LiveData<NoteResult> =
         MutableLiveData<NoteResult>().apply {
-            userNotes.document(note.id)
-                .set(note)
-                .addOnSuccessListener {
-                    value = NoteResult.Success(note)
-                }
-                .addOnFailureListener {
-                    value = NoteResult.Error(it)
-                }
+            try {
+                userNotes.document(note.id)
+                    .set(note)
+                    .addOnSuccessListener {
+                        value = NoteResult.Success(note)
+                    }
+                    .addOnFailureListener {
+                        value = NoteResult.Error(it)
+                    }
+            } catch (e: Throwable){
+                value = NoteResult.Error(e)
+            }
+
         }
     override fun getUser(): LiveData<User?> =
         MutableLiveData<User>().apply {
@@ -64,12 +79,15 @@ class FirestoreProvider : DataProvider {
         }
     override fun deleteNote(noteId: String): LiveData<NoteResult> =
         MutableLiveData<NoteResult>().apply {
-            userNotes.document(noteId).delete()
-                .addOnSuccessListener {
-                    value = NoteResult.Success(null)
-                }.addOnFailureListener {
-                    value = NoteResult.Error(it)
-                }
+            try {
+                userNotes.document(noteId).delete()
+                    .addOnSuccessListener {
+                        value = NoteResult.Success(null)
+                    }.addOnFailureListener {
+                        value = NoteResult.Error(it)
+                    }
+            } catch (e: Throwable){
+                value = NoteResult.Error(e)
+            }
         }
-
 }
