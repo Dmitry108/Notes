@@ -5,31 +5,56 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import com.firebase.ui.auth.AuthUI
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.consumeEach
 import ru.bdim.notes.R
 import ru.bdim.notes.model.BaseViewState
 import ru.bdim.notes.model.auth.AuthException
 import ru.bdim.notes.viewmodel.BaseViewModel
+import kotlin.coroutines.CoroutineContext
 
-abstract class BaseActivity<T, S : BaseViewState<T>> : AppCompatActivity() {
+abstract class BaseActivity<T, S : BaseViewState<T>> : AppCompatActivity(), CoroutineScope {
 
+    override val coroutineContext: CoroutineContext by lazy {
+        Dispatchers.Main + Job() + CoroutineName("BaseActivity")
+    }
     companion object{
         const val AUTH_REQUEST_CODE = 1
     }
     abstract val viewModel: BaseViewModel<T, S>
     abstract val layoutId: Int?
 
+    private lateinit var dataJob: Job
+    //private lateinit var errorJob: Job
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         layoutId?.let {
             setContentView(it)
         }
-        viewModel.getViewState().observe(this, Observer {
-                it ?: return@Observer
-                it.data?.let { data -> renderData(data) }
-                it.e?.let { error -> renderError(error) }
-        })
+    }
+    override fun onStart() {
+        super.onStart()
+        dataJob = launch(Dispatchers.Main) {
+            viewModel.getViewState().consumeEach {
+                renderData(it.data)
+            }
+        }
+//        errorJob = launch (Dispatchers.Default){
+//            viewModel.getError().consumeEach {
+//                renderError(it)
+//            }
+//        }
+    }
+    override fun onStop() {
+        super.onStop()
+        dataJob.cancel()
+        //errorJob.cancel()
+    }
+    override fun onDestroy() {
+        super.onDestroy()
+        coroutineContext.cancel()
     }
     abstract fun renderData(data: T)
     protected fun renderError(e: Throwable?) {
@@ -53,7 +78,7 @@ abstract class BaseActivity<T, S : BaseViewState<T>> : AppCompatActivity() {
     protected fun showError(error: String) {
         Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
     }
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == AUTH_REQUEST_CODE && resultCode != Activity.RESULT_OK){
             finish()
         }

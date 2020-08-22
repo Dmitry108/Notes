@@ -40,10 +40,8 @@ class MainActivity : BaseActivity<List<Note>?, MainViewState>() {
             NoteActivity.startActivity(this)
         }
     }
-
     override fun onCreateOptionsMenu(menu: Menu?): Boolean =
         MenuInflater(this).inflate(R.menu.logout, menu).let { true }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
         when(item.itemId){
             R.id.mnu_logout -> showExitDialog().let{ true }

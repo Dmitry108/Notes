@@ -1,31 +1,29 @@
 package ru.bdim.notes.viewmodel
 
-import androidx.lifecycle.Observer
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
 import ru.bdim.notes.model.Note
 import ru.bdim.notes.model.NoteResult
-import ru.bdim.notes.model.NoteResult.Error
 import ru.bdim.notes.model.MainViewState
 import ru.bdim.notes.model.Repository
 
 class MainViewModel(repository: Repository) : BaseViewModel<List<Note>?, MainViewState>() {
 
-    private val notesObserver = Observer<NoteResult> {
-        it ?: return@Observer
-        viewStateLD.value = when(it) {
-            is NoteResult.Success<*> ->
-                MainViewState(notes = it.data as? List<Note>)
-            is Error ->
-                MainViewState(error = it.e)
-        }
-    }
-    private val repositoryNotes = repository.getNotes()
+    private val notes = repository.getNotes()
 
     init {
-        viewStateLD.value = MainViewState()
-        repositoryNotes.observeForever(notesObserver)
+        launch {
+            notes.consumeEach {
+                when (it){
+                    is NoteResult.Success<*> -> setData(MainViewState(notes = it.data as? List<Note>))
+                    //is NoteResult.Error -> setError(it.e)
+                    is NoteResult.Error -> setData(MainViewState(error = it.e))
+                }
+            }
+        }
     }
     override fun onCleared() {
-        repositoryNotes.removeObserver(notesObserver)
+        notes.cancel()
         super.onCleared()
     }
 }

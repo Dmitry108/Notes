@@ -26,45 +26,45 @@ import ru.bdim.notes.view.NoteActivity
 import ru.bdim.notes.viewmodel.NoteViewModel
 
 class NoteActivityTest {
-    @get:Rule
-    val rule = IntentsTestRule(
-        NoteActivity::class.java, true, false)
-
-    private val mockViewModel = mockk<NoteViewModel>(relaxed = true)
-    private val liveData = MutableLiveData<NoteViewState>()
-
-    private val testNote = Note("1", "test", "самый важный", Note.NoteColor.YELLOW)
-
-    @Before
-    fun setup(){
-        loadKoinModules(listOf(
-            module { viewModel (override = true){ mockViewModel } }
-        ))
-        every { mockViewModel.getViewState() } returns liveData
-        Intent().apply {
-            putExtra("TAG", testNote.id).let {
-                rule.launchActivity(it)
-            }
-        }
-    }
-
-    @Test
-    fun testing_initView(){
-        liveData.postValue(NoteViewState(NoteViewState.Data(note = testNote)))
-        onView(withId(R.id.etx_note_title)).check(matches(withText(testNote.title)))
-        onView(withId(R.id.etx_note_body)).check(matches(withText(testNote.text)))
-    }
-
-    @Test
-    fun testing_delete_note(){
-        openActionBarOverflowOrOptionsMenu(rule.activity)
-        onView(withText(R.string.delete)).perform(click())
-        onView(withText(R.string.yes)).perform(click())
-        verify (exactly = 1) { mockViewModel.deleteNote() }
-    }
-
-    @After
-    fun stop(){
-        stopKoin()
-    }
+//    @get:Rule
+//    val rule = IntentsTestRule(
+//        NoteActivity::class.java, true, false)
+//
+//    private val mockViewModel = mockk<NoteViewModel>(relaxed = true)
+//    private val liveData = MutableLiveData<NoteViewState>()
+//
+//    private val testNote = Note("1", "test", "самый важный", Note.NoteColor.YELLOW)
+//
+//    @Before
+//    fun setup(){
+//        loadKoinModules(listOf(
+//            module { viewModel (override = true){ mockViewModel } }
+//        ))
+//        //every { mockViewModel.getViewState() } returns liveData
+//        Intent().apply {
+//            putExtra("TAG", testNote.id).let {
+//                rule.launchActivity(it)
+//            }
+//        }
+//    }
+//
+//   // @Test
+//    fun testing_initView(){
+//        liveData.postValue(NoteViewState(NoteViewState.Data(note = testNote)))
+//        onView(withId(R.id.etx_note_title)).check(matches(withText(testNote.title)))
+//        onView(withId(R.id.etx_note_body)).check(matches(withText(testNote.text)))
+//    }
+//
+//    //@Test
+//    fun testing_delete_note(){
+//        openActionBarOverflowOrOptionsMenu(rule.activity)
+//        onView(withText(R.string.delete)).perform(click())
+//        onView(withText(R.string.yes)).perform(click())
+//        verify (exactly = 1) { mockViewModel.deleteNote() }
+//    }
+//
+//    @After
+//    fun stop(){
+//        stopKoin()
+//    }
 }

@@ -12,3 +12,5 @@ class NoteViewState(data: Data = Data(),
 }
 class SplashViewState(isAuth: Boolean? = null, error: Throwable? = null)
     : BaseViewState<Boolean?>(isAuth, error)
+
+//data class NoteData(val isDeleted: Boolean = false, val  note: Note? = null)

@@ -4,8 +4,8 @@ import ru.bdim.notes.model.source.DataProvider
 
 class Repository (val dataSource : DataProvider){
     fun getNotes() = dataSource.subscribeToNotes()
-    fun setNote(note: Note) = dataSource.setNote(note)
-    fun getNote(id: String) = dataSource.getNote(id)
-    fun getUser() = dataSource.getUser()
-    fun deleteNote(noteId: String) = dataSource.deleteNote(noteId)
+    suspend fun setNote(note: Note) = dataSource.setNote(note)
+    suspend fun getNote(id: String) = dataSource.getNote(id)
+    suspend fun getUser() = dataSource.getUser()
+    suspend fun deleteNote(noteId: String) = dataSource.deleteNote(noteId)
 }
